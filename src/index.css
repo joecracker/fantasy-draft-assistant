@@ -1,6 +1,32 @@
 @import "tailwindcss";
 
+/* Remap every teal shade to the FIRE orange palette so the whole app uses
+   the fire color scheme (orange-500 = #f97316 is the core "flame" color). */
+@theme {
+  --color-teal-50:  #fff7ed;
+  --color-teal-100: #ffedd5;
+  --color-teal-200: #fed7aa;
+  --color-teal-300: #fdba74;
+  --color-teal-400: #fb923c;
+  --color-teal-500: #f97316;
+  --color-teal-600: #ea580c;
+  --color-teal-700: #c2410c;
+  --color-teal-800: #9a3412;
+  --color-teal-900: #7c2d12;
+  --color-teal-950: #431407;
+}
+
 html, body, #root {
   max-width: 100%;
   overflow-x: hidden;
 }
+
+/* Fade-in animation used across the app (splash, menus, panels, modals) */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+  animation: fade-in 0.35s ease-out;
+}
+

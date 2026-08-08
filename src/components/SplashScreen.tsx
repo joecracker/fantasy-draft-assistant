@@ -1,8 +1,8 @@
 import React from 'react';
-import { Flame } from 'lucide-react';
+import { Sparkles, ChevronRight } from 'lucide-react';
 
 // =====================================================================
-// SPLASH SCREEN — FIRE branding
+// SPLASH SCREEN — FIRE (Gemini "The Forge" design)
 // Full-screen cover with the logo + one "Enter" button.
 // The Enter button must call `onEnter` exactly as wired below.
 // =====================================================================
@@ -13,32 +13,59 @@ interface SplashScreenProps {
 
 export default function SplashScreen({ onEnter }: SplashScreenProps) {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-8 bg-slate-950 text-slate-100 p-8 text-center relative overflow-hidden">
-      {/* Soft flame glow behind the logo */}
-      <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-        <div className="h-72 w-72 rounded-full bg-orange-600/10 blur-3xl"></div>
-      </div>
+    <div className="w-full min-h-screen bg-[#0a0a0c] text-slate-100 font-sans selection:bg-orange-500 selection:text-black flex flex-col justify-between items-center relative overflow-hidden">
+      {/* Background Radial Glow */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: 'radial-gradient(circle at 50% 45%, rgba(249, 115, 22, 0.12) 0%, rgba(10, 10, 12, 0.95) 70%)'
+        }}
+      />
 
-      <div className="relative flex flex-col items-center gap-6">
-        <div className="flex h-20 w-20 items-center justify-center rounded-3xl border-2 border-orange-500/40 bg-orange-500/10 text-orange-400 shadow-lg shadow-orange-600/20">
-          <Flame className="h-10 w-10" />
-        </div>
-        <div className="text-7xl font-black tracking-tight text-white">
-          FIRE
-        </div>
-        <p className="max-w-md text-slate-400 text-sm leading-relaxed">
-          The draft room where numbers beat hype.
-        </p>
-      </div>
+      <div className="relative z-10 flex flex-col items-center justify-between min-h-screen w-full max-w-md px-6 py-12 text-center animate-fade-in">
 
-      <button
-        type="button"
-        onClick={onEnter}
-        className="relative rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold px-10 py-3.5 text-base shadow-lg shadow-orange-600/20 transition-all cursor-pointer active:translate-y-px"
-      >
-        Enter
-      </button>
-      <p className="text-[10px] text-slate-600 mt-8">Powered by AI</p>
+        {/* Top Spacer / Minimal Brand Header */}
+        <div className="pt-6">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-orange-500/20 bg-orange-500/5 text-orange-400 text-xs tracking-wider uppercase font-mono">
+            <Sparkles className="w-3.5 h-3.5 text-orange-500" />
+            <span>Next-Gen Fantasy</span>
+          </div>
+        </div>
+
+        {/* Hero Center - Branding */}
+        <div className="flex flex-col items-center justify-center my-auto w-full">
+          {/* Logo Container with Ambient Backlight */}
+          <div className="relative mb-6">
+            <div className="absolute inset-0 bg-orange-500/30 blur-3xl rounded-full scale-150 animate-pulse pointer-events-none" />
+
+            <h1 className="relative text-7xl sm:text-8xl font-black tracking-tighter uppercase text-transparent bg-clip-text bg-gradient-to-b from-slate-100 via-slate-200 to-slate-400 drop-shadow-[0_10px_20px_rgba(0,0,0,0.8)]">
+              FIRE
+            </h1>
+          </div>
+
+          {/* Tagline */}
+          <p className="text-xs sm:text-sm font-semibold tracking-[0.25em] text-slate-400 uppercase max-w-xs leading-relaxed">
+            The draft room where numbers beat hype
+          </p>
+        </div>
+
+        {/* Bottom Actions */}
+        <div className="w-full flex flex-col items-center gap-8 pb-4">
+          {/* Enter Button */}
+          <button
+            onClick={onEnter}
+            className="group relative w-full py-4 px-8 rounded-lg bg-transparent border border-orange-500/80 text-orange-400 font-bold tracking-widest uppercase text-sm transition-all duration-300 ease-out hover:bg-orange-500 hover:text-black hover:border-orange-500 hover:shadow-[0_0_30px_rgba(249,115,22,0.5)] active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <span>ENTER</span>
+            <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+          </button>
+
+          {/* Footer Note */}
+          <p className="text-[10px] font-mono tracking-widest text-slate-500 uppercase">
+            Powered by AI
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

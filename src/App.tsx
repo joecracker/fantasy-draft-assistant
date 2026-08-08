@@ -1745,9 +1745,12 @@ Give me a decisive, 2-3 sentence recommendation: who should I take, and the ONE 
 
       {/* HOME HUB (menu of doors) */}
       {appStage === 'hub' && (
-        <div className="min-h-screen flex flex-col bg-slate-950">
-          <Header onHomeClick={goToHub} onDraftClick={goToDraft} onHowToClick={() => setAppStage('howto')} />
-          <HomeHub onOpenDraft={goToDraft} onOpenHowTo={() => setAppStage('howto')} />
+        <div className="min-h-screen flex flex-col bg-[#0a0a0c]">
+          <HomeHub
+            onOpenDraft={goToDraft}
+            onOpenHowTo={() => setAppStage('howto')}
+            onBackToSplash={() => setAppStage('splash')}
+          />
         </div>
       )}
 
@@ -2525,7 +2528,7 @@ Give me a decisive, 2-3 sentence recommendation: who should I take, and the ONE 
                                     ? `${posBg} ring-1 ring-emerald-400 shadow-md`
                                     : posBg
                                   : isCurrentPickCell
-                                  ? 'bg-teal-900/20 border-teal-500/50 ring-1 ring-teal-500/50 shadow-[0_0_10px_rgba(20,184,166,0.1)] animate-pulse'
+                                  ? 'bg-teal-900/20 border-teal-500/50 ring-1 ring-teal-500/50 shadow-[0_0_10px_rgba(249,115,22,0.1)] animate-pulse'
                                   : 'bg-slate-900/20 border-slate-800/40 border-dashed'
                               }`}
                             >
