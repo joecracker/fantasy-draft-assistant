@@ -2,7 +2,7 @@ import React from 'react';
 import { Sparkles, ChevronRight } from 'lucide-react';
 
 // =====================================================================
-// SPLASH SCREEN — FIRE (Gemini "The Forge" design)
+// SPLASH SCREEN — FIRE
 // Full-screen cover with the logo + one "Enter" button.
 // The Enter button must call `onEnter` exactly as wired below.
 // =====================================================================
@@ -13,12 +13,12 @@ interface SplashScreenProps {
 
 export default function SplashScreen({ onEnter }: SplashScreenProps) {
   return (
-    <div className="w-full min-h-screen bg-[#0a0a0c] text-slate-100 font-sans selection:bg-orange-500 selection:text-black flex flex-col justify-between items-center relative overflow-hidden">
+    <div className="w-full min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-orange-500 selection:text-black flex flex-col justify-between items-center relative overflow-hidden">
       {/* Background Radial Glow */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
-          background: 'radial-gradient(circle at 50% 45%, rgba(249, 115, 22, 0.12) 0%, rgba(10, 10, 12, 0.95) 70%)'
+          background: 'radial-gradient(circle at 50% 45%, rgba(249, 115, 22, 0.12) 0%, var(--fda-glow-end) 70%)'
         }}
       />
 
@@ -62,7 +62,7 @@ export default function SplashScreen({ onEnter }: SplashScreenProps) {
 
           {/* Footer Note */}
           <p className="text-[10px] font-mono tracking-widest text-slate-500 uppercase">
-            Powered by AI
+            A CRACKERBOX APP
           </p>
         </div>
       </div>

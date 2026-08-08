@@ -2,7 +2,7 @@ import React from 'react';
 import { Gavel, Trophy, ArrowRightLeft, Link2, BookOpen } from 'lucide-react';
 
 // =====================================================================
-// HOME HUB / MENU PAGE — FIRE (Gemini "The Artifacts" design)
+// HOME HUB / MENU PAGE — FIRE
 // Four door tiles (Draft Room, Season Hub, Trades, League Sync).
 // Draft Room calls `onOpenDraft`. The other three are "coming soon"
 // and are dimmed. How To & Glossary calls `onOpenHowTo`.
@@ -17,13 +17,13 @@ interface HomeHubProps {
 
 export default function HomeHub({ onOpenDraft, onOpenHowTo, onBackToSplash }: HomeHubProps) {
   return (
-    <div className="w-full min-h-screen bg-[#0a0a0c] text-slate-100 font-sans selection:bg-orange-500 selection:text-black relative overflow-hidden">
+    <div className="w-full min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-orange-500 selection:text-black relative overflow-hidden">
 
       {/* Background Radial Glow */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
-          background: 'radial-gradient(circle at 50% 45%, rgba(249, 115, 22, 0.12) 0%, rgba(10, 10, 12, 0.95) 70%)'
+          background: 'radial-gradient(circle at 50% 45%, rgba(249, 115, 22, 0.12) 0%, var(--fda-glow-end) 70%)'
         }}
       />
 
@@ -153,7 +153,7 @@ export default function HomeHub({ onOpenDraft, onOpenHowTo, onBackToSplash }: Ho
             FIRE ENGINE v1.0
           </span>
           <span className="text-[10px] font-mono tracking-widest text-slate-500 uppercase">
-            Powered by AI
+            A CRACKERBOX APP
           </span>
         </footer>
       </div>

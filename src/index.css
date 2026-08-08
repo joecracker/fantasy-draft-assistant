@@ -21,6 +21,14 @@ html, body, #root {
   overflow-x: hidden;
 }
 
+/* Splash / Hub background glow end-color (dark default, flips in light mode) */
+:root {
+  --fda-glow-end: rgba(10, 10, 12, 0.95);
+}
+.light {
+  --fda-glow-end: rgba(214, 209, 200, 0.95);
+}
+
 /* Fade-in animation used across the app (splash, menus, panels, modals) */
 @keyframes fade-in {
   from { opacity: 0; transform: translateY(6px); }
@@ -28,5 +36,53 @@ html, body, #root {
 }
 .animate-fade-in {
   animation: fade-in 0.35s ease-out;
+}
+
+/* =====================================================================
+   DIMMER / "TWILIGHT" THEME
+   Tailwind v4 utilities reference CSS variables (--color-slate-*, etc.),
+   so redefining them under a `.light` class on the app root flips the
+   whole app between the dark "night" look and a warm mid-tone look that
+   sits between full dark and full light. The palette below is a warm
+   light-gray (softer than the near-black night theme, dimmer than pure
+   white) that stays easy on the eyes and true to the FIRE orange accents.
+   ===================================================================== */
+.light {
+  --color-slate-50:  #211e17;
+  --color-slate-100: #2b281f;
+  --color-slate-200: #363229;
+  --color-slate-300: #4a453c;
+  --color-slate-400: #5f5a50;
+  --color-slate-500: #7d766a;
+  --color-slate-600: #a89f91;
+  --color-slate-700: #c9c3b8;
+  --color-slate-800: #e5e1d8;
+  --color-slate-900: #ded9d0;
+  --color-slate-950: #d6d1c8;
+  /* White text becomes a dark ink so headings read on the lighter surfaces. */
+  --color-white: #2b281f;
+}
+
+/* Colored action buttons keep their bright fill, so their labels must
+   stay white in the light theme (orange, green, blue, sky fills). */
+.light .bg-teal-600.text-white,
+.light .bg-teal-500.text-white,
+.light .bg-emerald-600.text-white,
+.light .bg-emerald-500.text-white,
+.light .bg-indigo-600.text-white,
+.light .bg-indigo-500.text-white,
+.light .bg-sky-600.text-white,
+.light .bg-sky-500.text-white {
+  color: #fff;
+}
+.light .bg-teal-600 .border-white,
+.light .bg-teal-500 .border-white,
+.light .bg-emerald-600 .border-white,
+.light .bg-emerald-500 .border-white,
+.light .bg-indigo-600 .border-white,
+.light .bg-indigo-500 .border-white,
+.light .bg-sky-600 .border-white,
+.light .bg-sky-500 .border-white {
+  border-color: #fff;
 }
 

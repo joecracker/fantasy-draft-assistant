@@ -10,11 +10,11 @@ import { INITIAL_DRAFT_PLAYERS } from './data';
 import { getFullPlayerPool, assignTiers } from './additionalPlayers';
 import { 
   Activity, Sliders, ChevronRight, AlertCircle, 
-  X, Info, Database, BarChart3, TrendingDown, Target,
+  X, Database, BarChart3, TrendingDown, Target,
   Clock, Play, Pause, RotateCcw, Search, UserPlus,
   Sparkles, CheckCircle2, User, Users, ChevronDown, ListFilter,
   PlusCircle, Undo2, AlertTriangle, Trash2, Settings, Calendar, Home, Save, BookOpen,
-  CalendarRange, ArrowLeftRight, Link2
+  CalendarRange, ArrowLeftRight, Link2, Sun, Moon
 } from 'lucide-react';
 
 // Helper to determine if a specific pick number belongs to the user's draft slot in a snake draft
@@ -133,6 +133,14 @@ export default function App() {
     try { return localStorage.getItem('td_gemini_api_key') || ''; } catch { return ''; }
   });
   const [aiKeyInput, setAiKeyInput] = useState<string>('');
+
+  // Dimmer / "twilight" theme toggle (persisted on this device)
+  const [themeMode, setThemeMode] = useState<'dark' | 'dimmer'>(() => {
+    try { return localStorage.getItem('td_theme_mode') === 'dimmer' ? 'dimmer' : 'dark'; } catch { return 'dark'; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem('td_theme_mode', themeMode); } catch { /* ignore */ }
+  }, [themeMode]);
 
   // Active Draft Board stats
   const [currentRound, setCurrentRound] = useState<number>(1);
@@ -1738,14 +1746,14 @@ Give me a decisive, 2-3 sentence recommendation: who should I take, and the ONE 
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-teal-500/30 selection:text-teal-200 overflow-x-hidden max-w-full">
+    <div className={`min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-teal-500/30 selection:text-teal-200 overflow-x-hidden max-w-full ${themeMode === 'dimmer' ? 'light' : ''}`}>
 
       {/* SPLASH SCREEN (doorway cover) */}
       {appStage === 'splash' && <SplashScreen onEnter={handleEnter} />}
 
       {/* HOME HUB (menu of doors) */}
       {appStage === 'hub' && (
-        <div className="min-h-screen flex flex-col bg-[#0a0a0c]">
+        <div className="min-h-screen flex flex-col bg-slate-950">
           <HomeHub
             onOpenDraft={goToDraft}
             onOpenHowTo={() => setAppStage('howto')}
@@ -2049,6 +2057,40 @@ Give me a decisive, 2-3 sentence recommendation: who should I take, and the ONE 
                     </span>
                   </div>
                   <div className="animate-fade-in flex flex-col gap-4">
+                {/* APPEARANCE HUB */}
+                <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-4 flex flex-col gap-4 shadow-inner" id="appearance-hub">
+                  <h3 className="text-sm font-bold text-teal-400 flex items-center gap-2 border-b border-slate-800/60 pb-2">
+                    <Sliders className="h-4 w-4" />
+                    Appearance
+                  </h3>
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <div className="flex items-center gap-2.5">
+                      <div className="h-8 w-8 rounded-lg bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-400 shrink-0">
+                        {themeMode === 'dimmer' ? <Sun className="h-4 w-4 text-amber-400" /> : <Moon className="h-4 w-4 text-indigo-300" />}
+                      </div>
+                      <div>
+                        <span className="block text-xs font-bold text-white">Theme Mode</span>
+                        <span className="block text-[10px] text-slate-400 leading-tight mt-0.5">
+                          {themeMode === 'dimmer'
+                            ? 'Dimmer "twilight" look — warm, soft, and easy on the eyes.'
+                            : 'Dark night look — the classic FIRE draft room.'}
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setThemeMode(prev => prev === 'dimmer' ? 'dark' : 'dimmer')}
+                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-[10px] font-mono font-extrabold transition-all cursor-pointer select-none ${
+                        themeMode === 'dimmer'
+                          ? "bg-teal-500/20 border-teal-500/40 text-teal-400"
+                          : "bg-slate-950 border-slate-800 text-slate-500 hover:text-slate-400"
+                      }`}
+                      title="Switch between the dark and dimmer theme"
+                    >
+                      <span className={`h-2 w-2 rounded-full ${themeMode === 'dimmer' ? 'bg-teal-400' : 'bg-slate-700'}`}></span>
+                      <span>{themeMode === 'dimmer' ? "DIMMER MODE" : "DARK MODE"}</span>
+                    </button>
+                  </div>
+                </div>
                 {/* DRAFT SETUP HUB */}
                 <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-4 flex flex-col gap-4 shadow-inner" id="draft-settings-hub">
                   <h3 className="text-sm font-bold text-teal-400 flex items-center gap-2 border-b border-slate-800/60 pb-2">
@@ -2715,7 +2757,7 @@ Give me a decisive, 2-3 sentence recommendation: who should I take, and the ONE 
                                 e.stopPropagation();
                                 handleDraftPlayer(p.id, 'user');
                               }}
-                              className="rounded-lg bg-emerald-600 hover:bg-emerald-500 px-2.5 py-1 text-xxs font-bold text-white transition-colors active:translate-y-px"
+                              className="rounded-lg bg-teal-500/10 border border-teal-500/30 text-teal-400 hover:bg-teal-500/20 px-2.5 py-1 text-xxs font-bold transition-all active:translate-y-px"
                             >
                               Draft
                             </button>
@@ -2929,7 +2971,11 @@ Give me a decisive, 2-3 sentence recommendation: who should I take, and the ONE 
                   return (
                     <div
                       key={player.id}
-                      onClick={() => setSelectedPlayerId(player.id)}
+                      onClick={() => {
+                        setSelectedPlayerId(player.id);
+                        setActiveRightTab('profile');
+                        setShowPlayerInfo(true);
+                      }}
                       className={`group relative rounded-xl border p-2 sm:p-2.5 transition-all cursor-pointer flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 ${
                         player.isDrafted
                           ? 'bg-slate-950/40 border-slate-900/60 opacity-50'
@@ -3023,19 +3069,6 @@ Give me a decisive, 2-3 sentence recommendation: who should I take, and the ONE 
 
                         {/* Action buttons */}
                         <div className="flex items-center gap-1 sm:gap-1.5 shrink-0 ml-auto sm:ml-0">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedPlayerId(player.id);
-                              setActiveRightTab('profile');
-                              setShowPlayerInfo(true);
-                            }}
-                            className="rounded-lg border border-slate-800 bg-slate-900 px-2 py-1 text-[10px] font-mono uppercase text-slate-400 hover:text-teal-400 hover:border-teal-500/30 flex items-center gap-1 shrink-0"
-                            title="Open player info panel"
-                          >
-                            <Info className="h-3 w-3" />
-                            <span className="hidden sm:inline">Info</span>
-                          </button>
                           {player.isDrafted ? (
                             <button
                               onClick={(e) => {
@@ -3053,10 +3086,10 @@ Give me a decisive, 2-3 sentence recommendation: who should I take, and the ONE 
                                   e.stopPropagation();
                                   handleDraftPlayer(player.id, 'user');
                                 }}
-                                className={`rounded-lg px-2 py-1 text-[10px] font-bold text-white shadow-sm flex items-center gap-0.5 sm:gap-1 transition-all shrink-0 ${
+                                className={`rounded-lg px-2 py-1 text-[10px] font-bold flex items-center gap-0.5 sm:gap-1 transition-all shrink-0 ${
                                   isUserTurn 
-                                    ? 'bg-emerald-500 hover:bg-emerald-400 ring-1 ring-emerald-400 ring-offset-1 ring-offset-slate-950 animate-pulse font-extrabold' 
-                                    : 'bg-emerald-600 hover:bg-emerald-500'
+                                    ? 'bg-teal-500/15 border border-teal-500/40 text-teal-400 ring-1 ring-teal-500/40 ring-offset-1 ring-offset-slate-950 animate-pulse font-extrabold' 
+                                    : 'bg-teal-500/10 border border-teal-500/30 text-teal-400 hover:bg-teal-500/20'
                                 }`}
                               >
                                 <User className="h-3 w-3 shrink-0" />
@@ -4474,7 +4507,7 @@ Give me a decisive, 2-3 sentence recommendation: who should I take, and the ONE 
       {/* Footer */}
       <footer className="mt-auto border-t border-slate-900 bg-slate-950 px-6 py-4 text-center">
         <p className="text-xxs text-slate-600 font-mono">
-          FIRE © 2026 • DRAFT WORKSPACE
+          FIRE © 2026 • DRAFT WORKSPACE • A CRACKERBOX APP
         </p>
       </footer>
       </>

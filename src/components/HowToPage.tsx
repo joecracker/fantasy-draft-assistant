@@ -1,5 +1,5 @@
 import React from 'react';
-import { BookOpen, ChevronDown, Home, Settings, Target, Sparkles } from 'lucide-react';
+import { BookOpen, ChevronDown, Home, Settings, Target, Sparkles, MonitorSmartphone, Sun, Moon } from 'lucide-react';
 
 // =====================================================================
 // HOW TO & GLOSSARY
@@ -54,6 +54,11 @@ export default function HowToPage({ onBack }: HowToPageProps) {
             <strong className="text-white">The golden rule:</strong> set up your league's rules first (scoring, number of teams, your
             draft slot) in <strong className="text-teal-400">Settings</strong>, then everything else in the app — the coach, the alerts, the
             practice drafts — uses <em>your</em> rules automatically.
+          </p>
+          <p>
+            <strong className="text-white">No API key is required to use the app.</strong> Everything you need for a draft works out of the
+            box — rankings, the coach, mock drafts, alerts. The only thing that needs a key is the optional <em>AI analysis</em> layer,
+            explained in its own section below. If you never touch a key, the app is 100% ready.
           </p>
         </>
       ),
@@ -153,6 +158,33 @@ export default function HowToPage({ onBack }: HowToPageProps) {
           <p>
             <strong className="text-white">You don't need the key to draft.</strong> All rankings, the coach's top-3, scarcity alerts, and mock drafts run on the
             app's own numbers. The key just adds the AI commentary layer.
+          </p>
+        </>
+      ),
+    },
+    {
+      id: 'appearance',
+      title: 'Change the Theme (Dark & Dimmer)',
+      body: (
+        <>
+          <p>
+            Want the app a little easier on your eyes in a bright room? Open{" "}
+            <Settings className="inline h-3.5 w-3.5 text-teal-400" /> <strong className="text-white">Settings → Appearance</strong> and
+            flip the <strong className="text-teal-400">Theme Mode</strong> switch:
+          </p>
+          <ul className="flex flex-col gap-2 list-none">
+            <li>
+              <Moon className="inline h-3.5 w-3.5 text-indigo-300" />{" "}
+              <strong className="text-white">Dark Mode</strong> — the classic near-black "night" look. The default.
+            </li>
+            <li>
+              <Sun className="inline h-3.5 w-3.5 text-amber-400" />{" "}
+              <strong className="text-white">Dimmer Mode</strong> — a softer, lighter "twilight" look that's friendlier in daylight.
+            </li>
+          </ul>
+          <p>
+            Your choice is remembered on that device, and the whole app — draft room, menus, splash screen, everything — switches
+            together. It's just a look; it never changes your data or settings.
           </p>
         </>
       ),
@@ -258,6 +290,20 @@ export default function HowToPage({ onBack }: HowToPageProps) {
         </p>
       </div>
 
+      {/* Designed-for-split-screen callout */}
+      <div className="rounded-2xl border border-teal-500/25 bg-teal-950/20 p-5 flex flex-col gap-2.5 animate-fade-in">
+        <span className="text-xs font-bold text-teal-400 uppercase tracking-wider flex items-center gap-1.5">
+          <MonitorSmartphone className="h-4 w-4" />
+          Best on Split Screen & Phone
+        </span>
+        <p className="text-sm text-slate-300 leading-relaxed">
+          This app works in full screen, but it's <strong className="text-white">designed for split screen</strong> and{" "}
+          <strong className="text-white">cell phones</strong>. Picture your league's draft on one side of your screen and this app on
+          the other — that's where it feels at home. On a phone, everything stacks into one clean column you can scroll. It runs
+          fine in full screen too; just don't be surprised if the layout spreads out to fill the extra space.
+        </p>
+      </div>
+
       {sections.map(section => (
         <section key={section.id} className="rounded-2xl border border-slate-800 bg-slate-900/50 overflow-hidden">
           <button
@@ -280,6 +326,17 @@ export default function HowToPage({ onBack }: HowToPageProps) {
           )}
         </section>
       ))}
+
+      {/* Sign-off disclaimer */}
+      <div className="rounded-2xl border border-slate-800 bg-slate-950/40 p-6 flex flex-col items-center text-center gap-2">
+        <p className="text-sm font-bold text-white">
+          Built for one guy, shared with everyone.
+        </p>
+        <p className="text-xs text-slate-500 leading-relaxed max-w-md">
+          This app was designed for my own drafts — if it happens to help you out, that's a bonus. It's not a product,
+          it's a hobby, so no promises and no warranty. Hope you enjoy it, and happy drafting.
+        </p>
+      </div>
     </div>
   );
 }

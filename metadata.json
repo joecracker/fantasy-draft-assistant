@@ -1,6 +1,0 @@
-{
-  "name": "FIRE",
-  "description": "A fantasy football draft board focused on raw stats and metrics. Interactive board, roster tracking, draft log, and AI analysis on demand.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}
