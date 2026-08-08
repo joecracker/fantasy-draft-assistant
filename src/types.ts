@@ -73,6 +73,26 @@ export interface DraftSettings {
   teamNames?: Record<number, string>;
 }
 
+// A named, pre-assembled draft configuration the user saves ahead of time.
+// Purely setup (scoring, teams, slot, specialty rules) — no players drafted.
+export interface DraftSetup {
+  id: string;
+  name: string;
+  createdAt: number;
+  settings: DraftSettings;
+  scoring: {
+    ppr: number;
+    passingTd: number;
+    interception: number;
+    tePremium: number;
+    passingBonus300: number;
+    rushingBonus100: number;
+    receivingBonus100: number;
+    rushingTd: number;
+    receivingTd: number;
+  };
+}
+
 export interface DraftHistoryItem {
   pickNumber: number;
   playerId: string;

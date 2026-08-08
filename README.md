@@ -1,6 +1,6 @@
-# NFL Fantasy Hype Filter
+# FIRE
 
-> A clinical, anti-hype fantasy football draft assistant — an AI analyst that strips out media narrative, coach speak, and training-camp puff pieces to give you the numbers that actually predict performance.
+> A stats-first fantasy football draft assistant. The draft board, player pool, roster, and log all run on raw numbers — targets, routes, and baselines — not headlines or camp buzz.
 
 **[Live demo →](https://fantasy-draft.crackerbox.app)**
 
@@ -8,17 +8,17 @@
 
 ## What it does
 
-This is a live draft board synced to real Sleeper league data, paired with an AI-powered "Anti-Hype Filter" that runs a clinical, stats-first breakdown on any player — regression risk, system fit, floor/ceiling range, and a narrative-bias callout — instead of the usual hype-driven takes.
+This is a live draft board synced to real Sleeper league data, with optional on-demand AI analysis for any player — regression risk, system fit, floor/ceiling range, and a stability score — all grounded in the underlying stats.
 
 - **Live Sleeper sync** — pulls real draft, league, and public-ADP data straight from the Sleeper API
 - **Snake draft board** with round/pick tracking, timer, and tiered player pool
-- **AI Anti-Hype analysis** on demand for any player: objective metrics, regression flags, system impact, and a clinical 1–10 stability score
+- **AI analysis** on demand for any player: objective metrics, regression flags, system impact, and a 1–10 stability score
 - **Custom scoring support** — standard, PPR, and half-PPR aware
 - Draft log, squad tracking, and advanced filtering tools
 
 ## How the AI analysis works
 
-Player breakdowns are generated server-side via a Netlify Function that calls the Gemini API — the API key never touches the browser. Each request returns a structured JSON report (objective metrics, regression risk, system analysis, variance assessment) rendered directly in the "Narrative Deflator" panel.
+Player breakdowns are generated server-side via a Netlify Function that calls the Gemini API — the API key never touches the browser. Each request returns a structured JSON report (objective metrics, regression risk, system analysis, variance assessment) rendered directly in the player info panel.
 
 ## Tech stack
 

@@ -1,6 +1,6 @@
 {
-  "name": "Fantasy Draft Assistant",
-  "description": "An interactive fantasy football draft board featuring an AI-powered Anti-Hype Filter that strips away narrative and focuses on predictive clinical metrics.",
+  "name": "FIRE",
+  "description": "A fantasy football draft board focused on raw stats and metrics. Interactive board, roster tracking, draft log, and AI analysis on demand.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

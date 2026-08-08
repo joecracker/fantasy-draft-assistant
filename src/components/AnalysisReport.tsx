@@ -27,10 +27,10 @@ export default function AnalysisReport({ result }: AnalysisReportProps) {
   const getStabilityLevel = (score: number) => {
     if (score >= 7.5) {
       return {
-        label: 'Clinical Anchor',
+        label: 'High Stability',
         color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30',
         barColor: 'bg-emerald-500',
-        text: 'Metrics support a highly resilient, high-floor volume profile. Low reliance on pure narrative.'
+        text: 'Metrics support a highly resilient, high-floor volume profile.'
       };
     } else if (score >= 4.5) {
       return {
@@ -41,10 +41,10 @@ export default function AnalysisReport({ result }: AnalysisReportProps) {
       };
     } else {
       return {
-        label: 'Vaporous Volatility',
+        label: 'High Volatility',
         color: 'text-rose-400 bg-rose-500/10 border-rose-500/30',
         barColor: 'bg-rose-500',
-        text: 'Extremely volatile profile. Heavily reliant on narrative hype and unsustainable efficiency metrics.'
+        text: 'Extremely volatile profile. Heavily reliant on unsustainable efficiency metrics.'
       };
     }
   };
@@ -83,17 +83,17 @@ export default function AnalysisReport({ result }: AnalysisReportProps) {
         </div>
 
         {/* Clinical Rating Circle */}
-        <div className="flex items-center gap-4 border-t border-slate-900 pt-4 sm:border-t-0 sm:pt-0">
-          <div className="flex flex-col text-right">
-            <span className="text-xxs font-mono uppercase tracking-widest text-slate-500">
-              Stability Rating
-            </span>
-            <span className={`text-xs font-semibold ${stability.color.split(' ')[0]}`}>
-              {stability.label}
-            </span>
-          </div>
-          <div className="relative flex h-16 w-16 items-center justify-center rounded-xl bg-slate-900 border border-slate-800 font-mono">
-            <div className="absolute top-1 left-1 text-[8px] font-semibold text-slate-500 uppercase tracking-widest">CI</div>
+          <div className="flex items-center gap-4 border-t border-slate-900 pt-4 sm:border-t-0 sm:pt-0">
+            <div className="flex flex-col text-right">
+              <span className="text-xxs font-mono uppercase tracking-widest text-slate-500">
+                Stability Rating
+              </span>
+              <span className={`text-xs font-semibold ${stability.color.split(' ')[0]}`}>
+                {stability.label}
+              </span>
+            </div>
+            <div className="relative flex h-16 w-16 items-center justify-center rounded-xl bg-slate-900 border border-slate-800 font-mono">
+              <div className="absolute top-1 left-1 text-[8px] font-semibold text-slate-500 uppercase tracking-widest">ST</div>
             <div className="text-center">
               <span className="text-xl font-black text-white">{clinicalScore}</span>
               <span className="text-slate-500 text-[10px]">/10</span>
@@ -182,7 +182,7 @@ export default function AnalysisReport({ result }: AnalysisReportProps) {
               <div className="grid gap-3 sm:grid-cols-2 text-xs">
                 <div className="rounded border border-slate-800 bg-slate-900/60 p-2.5">
                   <span className="text-[10px] font-bold text-rose-400 uppercase tracking-wider block mb-1">
-                    Clinical Floor Scenario
+                    Low-Floor Scenario
                   </span>
                   <p className="text-slate-400 leading-relaxed text-xxs font-sans">
                     {trueRangeOfOutcomes.floorDescription}
@@ -216,7 +216,7 @@ export default function AnalysisReport({ result }: AnalysisReportProps) {
               {/* Crossed out Narrative */}
               <div className="rounded-lg border border-slate-800 bg-slate-950 p-3.5 relative overflow-hidden">
                 <div className="absolute top-1 right-2 font-mono text-[8px] uppercase tracking-widest text-slate-600">
-                  Deflated Noise
+                  Discarded Narrative
                 </div>
                 <p className="text-xs text-slate-500 line-through italic leading-relaxed pr-8 font-sans">
                   "{narrativeTrashBin}"
@@ -225,10 +225,10 @@ export default function AnalysisReport({ result }: AnalysisReportProps) {
 
               <div className="rounded-lg border border-rose-500/15 bg-rose-500/5 p-3.5">
                 <div className="text-[10px] font-bold text-rose-400 uppercase tracking-wider block mb-1.5 font-mono">
-                  Analysis Protocol Adjustment
+                  Analysis Note
                 </div>
                 <p className="text-xs text-slate-300 leading-relaxed font-sans">
-                  The media hype above relies heavily on training camp quotes, coaching optimism, and subjective adjectives. We have deleted this narrative layer. The remaining clinical report is strictly metrics-backed.
+                  This narrative layer has been set aside. The remaining report is strictly metrics-backed.
                 </p>
               </div>
             </div>
@@ -324,7 +324,7 @@ export default function AnalysisReport({ result }: AnalysisReportProps) {
       <div className="rounded-xl border border-slate-800 bg-slate-950 p-5 flex flex-col gap-2.5">
         <h3 className="text-xs font-semibold uppercase tracking-wider text-teal-400 flex items-center gap-2 font-mono">
           <HelpCircle className="h-4 w-4" />
-          Clinical Variance Verdict
+          Variance Assessment
         </h3>
         <p className="text-xs text-slate-300 leading-relaxed font-sans">
           {varianceAssessment}
