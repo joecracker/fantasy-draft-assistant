@@ -3,6 +3,7 @@ import Header from './components/Header';
 import SplashScreen from './components/SplashScreen';
 import HomeHub from './components/HomeHub';
 import HowToPage from './components/HowToPage';
+import { BackupMenu } from './components/BackupMenu';
 import AnalysisReport from './components/AnalysisReport';
 import DiagnosticLoader from './components/DiagnosticLoader';
 import { PlayerInput, FilterResult, DraftPlayer, DraftSettings, DraftHistoryItem, DraftSetup } from './types';
@@ -4510,6 +4511,8 @@ Give me a decisive, 2-3 sentence recommendation: who should I take, and the ONE 
           FIRE © 2026 • DRAFT WORKSPACE • A CRACKERBOX APP
         </p>
       </footer>
+
+      <BackupMenu savedSetups={savedSetups} onRestore={persistSetups} />
       </>
       )}
     </div>
