@@ -48,7 +48,8 @@ export default function HowToPage({ onBack }: HowToPageProps) {
           </p>
           <p>
             When you open the app you'll see a start screen. Click through to the <strong className="text-white">Home menu</strong>, which
-            is your doorway to everything. The main place you'll work is the <strong className="text-white">Draft Room</strong>.
+            is your doorway to everything. You've got two ways in: the full-featured <strong className="text-white">Draft Room</strong>,
+            and the stripped-down <strong className="text-white">Boom Boom Room</strong> for quick-and-easy drafting (explained below).
           </p>
           <p>
             <strong className="text-white">The golden rule:</strong> set up your league's rules first (scoring, number of teams, your
@@ -89,6 +90,52 @@ export default function HowToPage({ onBack }: HowToPageProps) {
             On the <strong className="text-teal-400">Players</strong> tab you'll find the player pool — every available player,
             searchable and filterable. The <strong className="text-teal-400">Board</strong> tab shows the full draft grid of who went
             when. The <strong className="text-teal-400">Settings</strong> tab holds your league setup.
+          </p>
+        </>
+      ),
+    },
+    {
+      id: 'boom-boom-room',
+      title: 'The Boom Boom Room (Simple Drafting)',
+      body: (
+        <>
+          <p>
+            The <strong className="text-white">Boom Boom Room</strong> is the no-clutter way to draft. It's the same board and the
+            same coach as the Draft Room — just with everything else hidden so all you see is what matters.
+          </p>
+          <p>Open it from the <strong className="text-white">Home menu</strong> anytime. From top to bottom:</p>
+          <ul className="flex flex-col gap-2 list-none">
+            <li>
+              <strong className="text-white">The four numbers</strong> — <em>Round</em>, <em>Pick #</em> (whose turn it is right now),
+              <em>Your Next Pick</em> (the exact pick number you draft next — it says "NOW" when it's your turn), and
+              <em>Picked</em> (how many players you've taken so far).
+            </li>
+            <li>
+              <strong className="text-white">My Team</strong> — a button that opens your squad: exactly how many QB / RB / WR / TE / K /
+              DST you have and how many you still need, with your actual picks listed under each position. It even warns you if
+              you've forgotten a position entirely (like still having no QB by round 4+).
+            </li>
+            <li>
+              <strong className="text-white">Undo</strong> and <strong className="text-white">Reset</strong> right there next to the clock
+              strip, always in reach.
+            </li>
+            <li>
+              <strong className="text-white">The Pick-Time Coach</strong> pinned right below the top — its top 3 picks and the{" "}
+              <strong className="text-teal-400">Ask AI Coach</strong> button, always visible instead of hidden behind a tab.
+            </li>
+            <li>
+              <strong className="text-white">The player list</strong> — every available player sorted by ADP with position filters and a
+              search box, and one big <strong className="text-white">DRAFT</strong> button on each player.
+            </li>
+          </ul>
+          <p>
+            Drafting works exactly like the main room: one <strong className="text-white">DRAFT</strong> button per player automatically
+            assigns the pick to whoever is on the clock — you or another team. When it's your turn the button pulses.
+          </p>
+          <p>
+            Need your full settings? The <Settings className="inline h-3.5 w-3.5 text-teal-400" /> <strong className="text-white">gear</strong>{" "}
+            in the corner jumps straight to the full Settings tab in the Draft Room. Everything else — the board grid, mock drafts,
+            and the rest — stays in the main Draft Room when you want it.
           </p>
         </>
       ),
@@ -229,12 +276,14 @@ export default function HowToPage({ onBack }: HowToPageProps) {
       body: (
         <>
           <p>
-            To draft a player: select them in the list and use the <strong className="text-white">Draft</strong> button (mark them for you or for an
-            opponent as picks happen). The board fills in as you go.
+            To draft a player, hit the <strong className="text-white">DRAFT</strong> button on their row. There's just one button — the app knows
+            whose turn it is, so the pick is automatically filed under your team if you're on the clock, or under the team that is
+            picking if you're not. No choosing "mine or opponent" — you just tap the player.
           </p>
           <p>
             Made a mistake? Use <strong className="text-white">Undo</strong> to take back the most recent pick, or <strong className="text-white">Reset / Clear</strong> to
-            start the board over. Remember: in a real draft, track the opponents' picks as they happen — or use a mock draft to simulate them.
+            start the board over. Undo and Reset sit right at the top of both the Draft Room and the Boom Boom Room, so they're never
+            hard to find. Remember: in a real draft, tap DRAFT for the opponents' picks as they happen — or use a mock draft to simulate them.
           </p>
         </>
       ),
