@@ -25,6 +25,7 @@ export function BackupMenu({ savedSetups, onRestore }: BackupMenuProps) {
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [connected, setConnected] = useState(isDriveConnected());
+  const [pendingConfirm, setPendingConfirm] = useState<{ message: string; onConfirm: () => void } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const buildPayload = (): BackupPayload => ({
@@ -56,9 +57,13 @@ export function BackupMenu({ savedSetups, onRestore }: BackupMenuProps) {
         setStatus('That file does not look like a Fantasy Draft Assistant backup.');
         return;
       }
-      if (!window.confirm('Import this backup? It will replace your saved draft setups.')) return;
-      onRestore(parsed.savedSetups);
-      setStatus('Imported from file.');
+      setPendingConfirm({
+        message: 'Import this backup? It will replace your saved draft setups.',
+        onConfirm: () => {
+          onRestore(parsed.savedSetups);
+          setStatus('Imported from file.');
+        },
+      });
     } catch (err) {
       setStatus(err instanceof Error ? `Import failed: ${err.message}` : 'Import failed.');
     }
@@ -101,10 +106,14 @@ export function BackupMenu({ savedSetups, onRestore }: BackupMenuProps) {
         setStatus('No backup found in Drive yet — save one first.');
         return;
       }
-      if (!window.confirm('Restore from Drive? This will replace your saved draft setups.')) return;
-      onRestore(data.savedSetups);
-      setConnected(true);
-      setStatus('Restored from Google Drive.');
+      setPendingConfirm({
+        message: 'Restore from Drive? This will replace your saved draft setups.',
+        onConfirm: () => {
+          onRestore(data.savedSetups);
+          setConnected(true);
+          setStatus('Restored from Google Drive.');
+        },
+      });
     } catch (err) {
       setStatus(err instanceof Error ? err.message : 'Restore from Drive failed.');
     } finally {
@@ -191,6 +200,32 @@ export function BackupMenu({ savedSetups, onRestore }: BackupMenuProps) {
       >
         ☁ Backup
       </button>
+
+      {pendingConfirm && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="w-full max-w-sm rounded-xl border border-slate-700 bg-slate-900 p-5 flex flex-col gap-4 shadow-2xl">
+            <p className="text-xs text-slate-300 leading-relaxed">{pendingConfirm.message}</p>
+            <div className="flex items-center justify-end gap-2">
+              <button
+                onClick={() => setPendingConfirm(null)}
+                className="rounded-lg border border-slate-700 bg-slate-800 px-3.5 py-2 text-xs font-bold text-slate-300 hover:text-white transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  const action = pendingConfirm.onConfirm;
+                  setPendingConfirm(null);
+                  action();
+                }}
+                className="rounded-lg bg-teal-600 px-3.5 py-2 text-xs font-bold text-white hover:bg-teal-500 transition-colors"
+              >
+                Yes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

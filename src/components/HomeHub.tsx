@@ -1,21 +1,23 @@
 import React from 'react';
-import { Gavel, Trophy, ArrowRightLeft, Link2, BookOpen } from 'lucide-react';
+import { Gavel, Trophy, ArrowRightLeft, Bomb, BookOpen } from 'lucide-react';
 
 // =====================================================================
 // HOME HUB / MENU PAGE — FIRE
-// Four door tiles (Draft Room, Season Hub, Trades, League Sync).
-// Draft Room calls `onOpenDraft`. The other three are "coming soon"
-// and are dimmed. How To & Glossary calls `onOpenHowTo`.
+// Five door tiles (Draft Room, Season Hub, Trades, Boom Boom Room).
+// Draft Room calls `onOpenDraft`, Boom Boom Room calls `onOpenBoom`.
+// Season Hub and Trades are "coming soon" and are dimmed.
+// How To & Glossary calls `onOpenHowTo`.
 // The "FIRE // HUB" back arrow calls `onBackToSplash`.
 // =====================================================================
 
 interface HomeHubProps {
   onOpenDraft: () => void;
+  onOpenBoom: () => void;
   onOpenHowTo: () => void;
   onBackToSplash: () => void;
 }
 
-export default function HomeHub({ onOpenDraft, onOpenHowTo, onBackToSplash }: HomeHubProps) {
+export default function HomeHub({ onOpenDraft, onOpenBoom, onOpenHowTo, onBackToSplash }: HomeHubProps) {
   return (
     <div className="w-full min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-orange-500 selection:text-black relative overflow-hidden">
 
@@ -112,21 +114,28 @@ export default function HomeHub({ onOpenDraft, onOpenHowTo, onBackToSplash }: Ho
               </p>
             </div>
 
-            {/* Tile 4: LEAGUE SYNC (Coming Soon) */}
-            <div className="relative aspect-square rounded-lg bg-slate-900/30 border border-slate-800/80 p-4 flex flex-col items-center justify-center gap-3 text-center opacity-60 grayscale-[30%]">
-              <div className="p-4 rounded-xl bg-slate-800/50 text-slate-500 border border-slate-700/50">
-                <Link2 className="w-9 h-9" />
+            {/* Tile 4: BOOM BOOM ROOM (Active) */}
+            <button
+              onClick={onOpenBoom}
+              className="group relative aspect-square cursor-pointer rounded-lg bg-slate-900/60 border border-orange-500/50 p-4 transition-all duration-300 hover:border-orange-500 hover:shadow-[0_0_25px_rgba(249,115,22,0.25)] hover:-translate-y-0.5 flex flex-col items-center justify-center gap-3 text-center"
+            >
+              <div className="absolute top-0 right-0 w-16 h-16 bg-orange-500/10 rounded-bl-full pointer-events-none group-hover:bg-orange-500/20 transition-colors" />
+
+              <div className="p-4 rounded-xl bg-orange-500/10 border border-orange-500/30 text-orange-400 group-hover:scale-110 group-hover:bg-orange-500 group-hover:text-black transition-all">
+                <Bomb className="w-9 h-9" />
               </div>
-              <span className="text-[9px] font-mono tracking-widest uppercase px-1.5 py-0.5 rounded bg-slate-800 text-orange-500/80 border border-orange-500/30">
-                SOON
+
+              <span className="text-[9px] font-mono tracking-widest uppercase px-1.5 py-0.5 rounded bg-orange-500/20 text-orange-400 border border-orange-500/30">
+                ACTIVE
               </span>
-              <h3 className="text-base font-bold tracking-wider text-slate-400 uppercase">
-                League Sync
+
+              <h3 className="text-base font-bold tracking-wider text-slate-100 group-hover:text-orange-400 transition-colors uppercase">
+                Boom Boom Room
               </h3>
-              <p className="text-[10px] text-slate-500 font-mono">
-                Connect & sync a league
+              <p className="text-[10px] text-slate-400 font-mono">
+                Streamlined pick &amp; coach view
               </p>
-            </div>
+            </button>
 
           </div>
 

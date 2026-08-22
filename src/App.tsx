@@ -6,6 +6,7 @@ import HowToPage from './components/HowToPage';
 import { BackupMenu } from './components/BackupMenu';
 import AnalysisReport from './components/AnalysisReport';
 import DiagnosticLoader from './components/DiagnosticLoader';
+import BoomBoomRoom from './components/BoomBoomRoom';
 import { PlayerInput, FilterResult, DraftPlayer, DraftSettings, DraftHistoryItem, DraftSetup } from './types';
 import { INITIAL_DRAFT_PLAYERS } from './data';
 import { getFullPlayerPool, assignTiers } from './additionalPlayers';
@@ -13,9 +14,9 @@ import {
   Activity, Sliders, ChevronRight, AlertCircle, 
   X, Database, BarChart3, TrendingDown, Target,
   Clock, Play, Pause, RotateCcw, Search, UserPlus,
-  Sparkles, CheckCircle2, User, Users, ChevronDown, ListFilter,
+  Sparkles, CheckCircle2, Users, ChevronDown, ListFilter,
   PlusCircle, Undo2, AlertTriangle, Trash2, Settings, Calendar, Home, Save, BookOpen,
-  CalendarRange, ArrowLeftRight, Link2, Sun, Moon
+  CalendarRange, ArrowLeftRight, Sun, Moon, Bomb
 } from 'lucide-react';
 
 // Helper to determine if a specific pick number belongs to the user's draft slot in a snake draft
@@ -211,9 +212,10 @@ export default function App() {
   // App stage flow: splash → hub (menu) → draft room.
   // Splash shows on EVERY fresh open (so the app feels like a real app);
   // you only see it when the app first launches, then navigate freely.
-  const [appStage, setAppStage] = useState<'splash' | 'hub' | 'draft' | 'howto'>('splash');
+  const [appStage, setAppStage] = useState<'splash' | 'hub' | 'draft' | 'howto' | 'boom'>('splash');
   const goToHub = () => setAppStage('hub');
   const goToDraft = () => setAppStage('draft');
+  const goToBoom = () => setAppStage('boom');
   const handleEnter = () => setAppStage('hub');
 
   // Home button dropdown: lets you jump straight to any page from anywhere.
@@ -236,6 +238,22 @@ export default function App() {
   const [showSetupListModal, setShowSetupListModal] = useState<boolean>(false);
   const [setupToConfirmLoad, setSetupToConfirmLoad] = useState<DraftSetup | null>(null);
   const [showMockSetupModal, setShowMockSetupModal] = useState<boolean>(false);
+
+  // Generic in-app confirm dialog (replaces window.confirm — no native browser popups)
+  const [appConfirm, setAppConfirm] = useState<{ title: string; message: string; onConfirm: () => void } | null>(null);
+  // Short in-app toast notice (replaces window.alert)
+  const [appNotice, setAppNotice] = useState<string | null>(null);
+  const noticeTimer = useRef<number | null>(null);
+
+  const showAppConfirm = (title: string, message: string, onConfirm: () => void) => {
+    setAppConfirm({ title, message, onConfirm });
+  };
+
+  const showAppNotice = (msg: string) => {
+    setAppNotice(msg);
+    if (noticeTimer.current) window.clearTimeout(noticeTimer.current);
+    noticeTimer.current = window.setTimeout(() => setAppNotice(null), 4000);
+  };
 
   const HANDCUFF_MAP: Record<string, string[]> = {
     'Christian McCaffrey': ['Jordan Mason', 'Isaac Guerendo'],
@@ -566,10 +584,7 @@ export default function App() {
         if (updateCount === 0) {
           setSleeperError('No player rankings were matched. Sleeper may be updating their database.');
         } else if (!silent) {
-          alert(
-            `Live ADP updated from Sleeper's current rankings! ${updateCount} players refreshed on your board.` +
-            (matchedPlayers.length ? `\n\nSample: ${matchedPlayers.join(', ')}` : '')
-          );
+          showAppNotice(`Live ADP updated from Sleeper's current rankings! ${updateCount} players refreshed on your board.`);
         }
       }, 50);
     } catch (err: any) {
@@ -651,9 +666,7 @@ export default function App() {
         if (updateCount === 0) {
           setSleeperProjectionsError('No player projections were matched. Sleeper may be updating their database.');
         } else if (!silent) {
-          alert(
-            `Live projections updated from Sleeper! ${updateCount} players refreshed on your board.`
-          );
+          showAppNotice(`Live projections updated from Sleeper! ${updateCount} players refreshed on your board.`);
         }
       }, 50);
     } catch (err: any) {
@@ -879,24 +892,33 @@ export default function App() {
     });
   };
 
-  // Reset the entire Draft Board
+  // Ask before clearing the entire draft board (in-app dialog, no browser popup)
+  const requestResetDraft = () => {
+    showAppConfirm(
+      'Reset draft board?',
+      'This clears every drafted player, roster, and the pick clock back to Round 1, Pick 1. You can\'t undo a full reset.',
+      () => {
+        setPlayers((prev) => {
+          return prev.map((p) => ({
+            ...p,
+            isDrafted: false,
+            draftedBy: null,
+            draftPickNumber: undefined,
+          }));
+        });
+        setDraftHistory([]);
+        setCurrentRound(1);
+        setCurrentPick(1);
+        setTotalDraftedCount(0);
+        setTimerSeconds(settings.timeLimitSeconds);
+        setIsTimerRunning(false);
+      }
+    );
+  };
+
+  // Reset the entire Draft Board (fire-and-forget, used where no confirmation is needed)
   const handleResetDraft = () => {
-    if (window.confirm('Reset all drafted players, rosters, and clocks back to Round 1?')) {
-      setPlayers((prev) => {
-        return prev.map((p) => ({
-          ...p,
-          isDrafted: false,
-          draftedBy: null,
-          draftPickNumber: undefined,
-        }));
-      });
-      setDraftHistory([]);
-      setCurrentRound(1);
-      setCurrentPick(1);
-      setTotalDraftedCount(0);
-      setTimerSeconds(settings.timeLimitSeconds);
-      setIsTimerRunning(false);
-    }
+    requestResetDraft();
   };
 
   // ---- Draft Setups: save / load named predraft configurations ----
@@ -977,9 +999,12 @@ export default function App() {
   };
 
   const handleDeleteSetup = (id: string) => {
-    if (window.confirm('Delete this saved draft setup?')) {
-      persistSetups(savedSetups.filter((s) => s.id !== id));
-    }
+    const setup = savedSetups.find((s) => s.id === id);
+    showAppConfirm(
+      'Delete saved setup?',
+      `Remove "${setup?.name || 'this setup'}"? You'll have to rebuild it from scratch later.`,
+      () => persistSetups(savedSetups.filter((s) => s.id !== id))
+    );
   };
 
   // Start a mock draft using either standard settings or a saved setup
@@ -1746,6 +1771,9 @@ Give me a decisive, 2-3 sentence recommendation: who should I take, and the ONE 
     }
   };
 
+  const scoringLabel =
+    `${scoringSettings.ppr >= 1 ? 'PPR' : scoringSettings.ppr >= 0.5 ? 'Half-P' : 'Standard'} • ${settings.totalTeams} teams • Pick #${settings.userPickNumber}`;
+
   return (
     <div className={`min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-teal-500/30 selection:text-teal-200 overflow-x-hidden max-w-full ${themeMode === 'dimmer' ? 'light' : ''}`}>
 
@@ -1757,6 +1785,7 @@ Give me a decisive, 2-3 sentence recommendation: who should I take, and the ONE 
         <div className="min-h-screen flex flex-col bg-slate-950">
           <HomeHub
             onOpenDraft={goToDraft}
+            onOpenBoom={goToBoom}
             onOpenHowTo={() => setAppStage('howto')}
             onBackToSplash={() => setAppStage('splash')}
           />
@@ -1768,6 +1797,34 @@ Give me a decisive, 2-3 sentence recommendation: who should I take, and the ONE 
         <div className="min-h-screen flex flex-col bg-slate-950">
           <Header onHomeClick={goToHub} onDraftClick={goToDraft} onHowToClick={() => setAppStage('howto')} />
           <HowToPage onBack={goToHub} />
+        </div>
+      )}
+
+      {/* BOOM BOOM ROOM (streamlined draft page) */}
+      {appStage === 'boom' && (
+        <div className="min-h-screen flex flex-col bg-slate-950">
+          <BoomBoomRoom
+            players={players}
+            currentPick={currentPick}
+            currentRound={currentRound}
+            totalTeams={settings.totalTeams}
+            userPickNumber={settings.userPickNumber}
+            teamNames={settings.teamNames}
+            scoringLabel={scoringLabel}
+            isUserTurn={isUserTurn}
+            coachRecommendations={coachRecommendations}
+            coachAiText={coachAiText}
+            coachAiLoading={coachAiLoading}
+            hasAiKey={!!geminiApiKey}
+            onAskCoachAi={handleAskCoachAi}
+            onDraftPlayer={(playerId) => handleDraftPlayer(playerId, isUserTurn ? 'user' : 'opponent')}
+            onUndoLastPick={handleUndoLastPick}
+            onResetDraft={handleResetDraft}
+            canUndo={draftHistory.length > 0}
+            projectedPoints={getPlayerProjectedPoints}
+            onOpenSettings={() => { setAppStage('draft'); setActiveTopTab('settings'); }}
+            onBack={goToHub}
+          />
         </div>
       )}
 
@@ -1806,6 +1863,14 @@ Give me a decisive, 2-3 sentence recommendation: who should I take, and the ONE 
                 </button>
                 <button
                   type="button"
+                  onClick={() => { setShowHomeMenu(false); goToBoom(); }}
+                  className="w-full flex items-center gap-2 px-3.5 py-2 text-xs font-bold text-slate-200 hover:bg-slate-800 transition-colors text-left"
+                >
+                  <Bomb className="h-4 w-4 text-orange-400" />
+                  Boom Boom Room
+                </button>
+                <button
+                  type="button"
                   onClick={() => { setShowHomeMenu(false); goToHub(); }}
                   className="w-full flex items-center gap-2 px-3.5 py-2 text-xs font-bold text-slate-200 hover:bg-slate-800 transition-colors text-left"
                 >
@@ -1825,7 +1890,6 @@ Give me a decisive, 2-3 sentence recommendation: who should I take, and the ONE 
                 {[
                   { icon: CalendarRange, label: 'Season Hub' },
                   { icon: ArrowLeftRight, label: 'Trades' },
-                  { icon: Link2, label: 'League Sync' },
                 ].map((item) => {
                   const Icon = item.icon;
                   return (
@@ -1980,6 +2044,20 @@ Give me a decisive, 2-3 sentence recommendation: who should I take, and the ONE 
                 No clock in live drafts — mock drafts include a practice clock.
               </div>
             )}
+
+            <button
+              onClick={handleUndoLastPick}
+              disabled={draftHistory.length === 0}
+              className={`flex h-[58px] px-4 items-center justify-center gap-1.5 rounded-xl border text-xs font-bold font-mono uppercase tracking-wider transition-colors shrink-0 ${
+                draftHistory.length === 0
+                  ? 'border-slate-800 bg-slate-900/20 text-slate-600 cursor-not-allowed'
+                  : 'border-emerald-500/60 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/25 hover:text-emerald-200 shadow-md shadow-emerald-950/40'
+              }`}
+              title="Take back the most recent pick"
+            >
+              <Undo2 className="h-4 w-4 shrink-0" />
+              Undo Last Pick
+            </button>
 
             {/* Reset Board Button next to clock */}
             <button
@@ -3081,33 +3159,19 @@ Give me a decisive, 2-3 sentence recommendation: who should I take, and the ONE 
                               Undraft
                             </button>
                           ) : (
-                            <>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDraftPlayer(player.id, 'user');
-                                }}
-                                className={`rounded-lg px-2 py-1 text-[10px] font-bold flex items-center gap-0.5 sm:gap-1 transition-all shrink-0 ${
-                                  isUserTurn 
-                                    ? 'bg-teal-500/15 border border-teal-500/40 text-teal-400 ring-1 ring-teal-500/40 ring-offset-1 ring-offset-slate-950 animate-pulse font-extrabold' 
-                                    : 'bg-teal-500/10 border border-teal-500/30 text-teal-400 hover:bg-teal-500/20'
-                                }`}
-                              >
-                                <User className="h-3 w-3 shrink-0" />
-                                <span>Mine</span>
-                              </button>
-                              
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDraftPlayer(player.id, 'opponent');
-                                }}
-                                className="rounded-lg border border-slate-800 bg-slate-900 px-2 py-1 text-[10px] font-bold text-slate-400 hover:text-rose-400 hover:border-rose-500/30 transition-colors flex items-center gap-0.5 sm:gap-1 shrink-0"
-                              >
-                                <Users className="h-3 w-3 shrink-0" />
-                                <span>Opp</span>
-                              </button>
-                            </>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDraftPlayer(player.id, isUserTurn ? 'user' : 'opponent');
+                              }}
+                              className={`rounded-lg px-2.5 py-1 text-[10px] font-bold tracking-wide transition-all shrink-0 active:translate-y-px ${
+                                isUserTurn
+                                  ? 'bg-teal-500/15 border border-teal-500/40 text-teal-400 ring-1 ring-teal-500/40 ring-offset-1 ring-offset-slate-950 animate-pulse font-extrabold'
+                                  : 'border border-slate-800 bg-slate-900 text-slate-300 hover:text-white hover:border-slate-600'
+                              }`}
+                            >
+                              DRAFT
+                            </button>
                           )}
 
                           <div className="text-slate-600 group-hover:text-slate-400 pl-0.5 sm:pl-1">
@@ -4513,6 +4577,41 @@ Give me a decisive, 2-3 sentence recommendation: who should I take, and the ONE 
       </footer>
 
       <BackupMenu savedSetups={savedSetups} onRestore={persistSetups} />
+
+      {/* In-app confirmation dialog (replaces window.confirm) */}
+      {appConfirm && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="w-full max-w-sm rounded-xl border border-slate-700 bg-slate-900 p-5 flex flex-col gap-4 shadow-2xl">
+            <h3 className="text-sm font-bold text-white">{appConfirm.title}</h3>
+            <p className="text-xs text-slate-300 leading-relaxed">{appConfirm.message}</p>
+            <div className="flex items-center justify-end gap-2">
+              <button
+                onClick={() => setAppConfirm(null)}
+                className="rounded-lg border border-slate-700 bg-slate-800 px-3.5 py-2 text-xs font-bold text-slate-300 hover:text-white transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  const action = appConfirm.onConfirm;
+                  setAppConfirm(null);
+                  action();
+                }}
+                className="rounded-lg bg-rose-600 px-3.5 py-2 text-xs font-bold text-white hover:bg-rose-500 transition-colors"
+              >
+                Yes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* In-app toast notice (replaces window.alert) */}
+      {appNotice && (
+        <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-[65] rounded-lg border border-teal-500/50 bg-slate-900 px-4 py-3 text-xs font-bold text-teal-300 shadow-2xl animate-fade-in max-w-[90vw] text-center">
+          {appNotice}
+        </div>
+      )}
       </>
       )}
     </div>
