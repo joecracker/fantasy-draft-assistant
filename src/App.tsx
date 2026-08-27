@@ -10,6 +10,11 @@ import BoomBoomRoom from './components/BoomBoomRoom';
 import { PlayerInput, FilterResult, DraftPlayer, DraftSettings, DraftHistoryItem, DraftSetup } from './types';
 import { INITIAL_DRAFT_PLAYERS } from './data';
 import { getFullPlayerPool, assignTiers } from './additionalPlayers';
+import {
+  captureYahooRedirect, isYahooConnected, startYahooLogin, clearYahoo,
+  fetchYahooLeagues, fetchYahooDraftPicks, saveYahooLeagueKey, loadYahooLeagueKey,
+  type YahooLeague,
+} from './lib/yahooSync';
 import { 
   Activity, Sliders, ChevronRight, AlertCircle, 
   X, Database, BarChart3, TrendingDown, Target,
@@ -129,6 +134,16 @@ export default function App() {
   // Sleeper Projections State (fresh projected points, free public API — no key needed)
   const [isSleeperProjectionsLoading, setIsSleeperProjectionsLoading] = useState<boolean>(false);
   const [sleeperProjectionsError, setSleeperProjectionsError] = useState<string | null>(null);
+
+  // ---- Yahoo Live Draft Sync State (READ-ONLY) ----
+  const [yahooConnected, setYahooConnected] = useState<boolean>(() => isYahooConnected());
+  const [yahooLeagues, setYahooLeagues] = useState<YahooLeague[]>([]);
+  const [yahooLeagueKey, setYahooLeagueKey] = useState<string>(() => loadYahooLeagueKey() || '');
+  const [yahooSyncActive, setYahooSyncActive] = useState<boolean>(false);
+  const [yahooError, setYahooError] = useState<string | null>(null);
+  const [yahooStatus, setYahooStatus] = useState<string>('');
+  const [isYahooLeaguesLoading, setIsYahooLeaguesLoading] = useState<boolean>(false);
+  const yahooSeenPicks = useRef<Set<number>>(new Set()); // pick numbers already applied
 
   // Bring-Your-Own-Key: user's own Gemini API key, saved only on this device
   const [geminiApiKey, setGeminiApiKey] = useState<string>(() => {
@@ -512,6 +527,14 @@ export default function App() {
       });
   }, []);
 
+  // On mount: if Yahoo just redirected back with tokens in the URL, capture them.
+  useEffect(() => {
+    if (captureYahooRedirect()) {
+      setYahooConnected(true);
+      setYahooStatus('Yahoo connected! Pick your league below.');
+    }
+  }, []);
+
   const handleFetchPublicSleeperAdp = async (silent: boolean = false) => {
     setIsPublicSleeperAdpLoading(true);
     setSleeperError(null);
@@ -828,6 +851,102 @@ export default function App() {
       setSelectedPlayerId(nextAvailable.id);
     }
   };
+
+  // ---- Yahoo Live Draft Sync (READ-ONLY) ----
+  // Marks a player taken from a Yahoo pick WITHOUT hijacking your pick counter
+  // or selected player. It only removes them from the available pool so FIRE's
+  // recommendations stay accurate. Matching reuses the same name+position key
+  // the Sleeper sync uses, so it's consistent with the rest of the app.
+  const markPlayersTakenFromYahoo = (picks: { pick: number; name: string; position: string }[]) => {
+    let newlyApplied = 0;
+
+    setPlayers((prev) => {
+      // Build a quick lookup of undrafted players by normalized name+position.
+      let changed = false;
+      const next = prev.map((p) => {
+        if (p.isDrafted) return p;
+        const match = picks.find((pk) => {
+          if (yahooSeenPicks.current.has(pk.pick)) return false;
+          const sameName = normalizeSleeperName(pk.name) === normalizeSleeperName(p.name);
+          const samePos = (pk.position || '').toUpperCase() === p.position;
+          return sameName && samePos;
+        });
+        if (match) {
+          yahooSeenPicks.current.add(match.pick);
+          newlyApplied++;
+          changed = true;
+          return { ...p, isDrafted: true, draftedBy: 'opponent' as const, draftPickNumber: match.pick };
+        }
+        return p;
+      });
+      return changed ? next : prev;
+    });
+
+    // Also remember any pick we couldn't match (e.g. a name spelling gap) so we
+    // don't retry it forever — but flag it so you can eyeball it.
+    const unmatched = picks.filter(
+      (pk) => !yahooSeenPicks.current.has(pk.pick)
+    );
+    if (unmatched.length > 0) {
+      setYahooStatus(
+        `Synced. ${newlyApplied} new pick(s) applied. ${unmatched.length} not matched yet (name mismatch?): ` +
+        unmatched.slice(0, 3).map((u) => u.name).join(', ') + (unmatched.length > 3 ? '…' : '')
+      );
+    } else if (newlyApplied > 0) {
+      setYahooStatus(`Synced. ${newlyApplied} new pick(s) applied.`);
+    }
+  };
+
+  const handleConnectYahoo = () => {
+    startYahooLogin(); // sends the browser to Yahoo's approval screen
+  };
+
+  const handleDisconnectYahoo = () => {
+    clearYahoo();
+    setYahooConnected(false);
+    setYahooSyncActive(false);
+    setYahooLeagues([]);
+    setYahooLeagueKey('');
+    yahooSeenPicks.current.clear();
+    setYahooStatus('');
+  };
+
+  const handleLoadYahooLeagues = async () => {
+    setIsYahooLeaguesLoading(true);
+    setYahooError(null);
+    try {
+      const leagues = await fetchYahooLeagues();
+      setYahooLeagues(leagues);
+      if (leagues.length === 1) {
+        setYahooLeagueKey(leagues[0].league_key);
+        saveYahooLeagueKey(leagues[0].league_key);
+      }
+    } catch (err: any) {
+      setYahooError(err.message || 'Failed to load Yahoo leagues.');
+    } finally {
+      setIsYahooLeaguesLoading(false);
+    }
+  };
+
+  // Poll Yahoo every few seconds while sync is active.
+  useEffect(() => {
+    if (!yahooSyncActive || !yahooLeagueKey) return;
+
+    let cancelled = false;
+    const poll = async () => {
+      try {
+        const picks = await fetchYahooDraftPicks(yahooLeagueKey);
+        if (!cancelled) markPlayersTakenFromYahoo(picks);
+      } catch (err: any) {
+        if (!cancelled) setYahooError(err.message || 'Yahoo sync error.');
+      }
+    };
+
+    poll(); // run immediately
+    const id = setInterval(poll, 5000); // then every 5s
+    return () => { cancelled = true; clearInterval(id); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [yahooSyncActive, yahooLeagueKey]);
 
   // Undo the absolute most recent pick
   const handleUndoLastPick = () => {
@@ -2406,7 +2525,89 @@ Give me a decisive, 2-3 sentence recommendation: who should I take, and the ONE 
                 </div>
               )}
 
-              {/* Bring-Your-Own-Key: AI Analysis Key card */}
+              {/* Yahoo Live Draft Sync card (READ-ONLY) */}
+              <div className="mt-2 border-t border-slate-800/40 pt-4 flex flex-col gap-3 animate-fade-in" id="yahoo-sync-card">
+                <div className="bg-gradient-to-r from-purple-950/15 to-slate-900/30 border border-purple-500/10 rounded-xl p-4 flex flex-col gap-3 shadow-md">
+                  <div className="flex items-center gap-2.5">
+                    <div className="h-8 w-8 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 shrink-0">
+                      <Database className="h-4 w-4 text-purple-300" />
+                    </div>
+                    <div>
+                      <span className="block text-xs font-bold text-white">Yahoo Live Draft Sync</span>
+                      <span className="block text-[10px] text-slate-400 leading-tight mt-0.5">
+                        Watches your live Yahoo draft and auto-marks players as taken. Read-only — it never drafts or changes anything on Yahoo.
+                      </span>
+                    </div>
+                  </div>
+
+                  {!yahooConnected ? (
+                    <button
+                      onClick={handleConnectYahoo}
+                      className="w-full flex items-center justify-center gap-2 rounded-lg bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 px-3 py-2 text-xs font-bold text-purple-200 transition-colors"
+                    >
+                      <Users className="h-3.5 w-3.5" />
+                      <span>Connect Yahoo</span>
+                    </button>
+                  ) : (
+                    <div className="flex flex-col gap-2">
+                      {yahooLeagues.length === 0 ? (
+                        <button
+                          onClick={handleLoadYahooLeagues}
+                          disabled={isYahooLeaguesLoading}
+                          className="w-full flex items-center justify-center gap-2 rounded-lg bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 px-3 py-2 text-xs font-bold text-purple-200 transition-colors disabled:opacity-50"
+                        >
+                          {isYahooLeaguesLoading ? 'Loading leagues…' : 'Load My Yahoo Leagues'}
+                        </button>
+                      ) : (
+                        <select
+                          value={yahooLeagueKey}
+                          onChange={(e) => { setYahooLeagueKey(e.target.value); saveYahooLeagueKey(e.target.value); }}
+                          className="w-full rounded-lg bg-slate-900/60 border border-purple-500/20 px-2 py-2 text-xs text-white"
+                        >
+                          <option value="">— Pick your league —</option>
+                          {yahooLeagues.map((lg) => (
+                            <option key={lg.league_key} value={lg.league_key}>
+                              {lg.name} ({lg.num_teams} teams)
+                            </option>
+                          ))}
+                        </select>
+                      )}
+
+                      {yahooLeagueKey && (
+                        <button
+                          onClick={() => { setYahooError(null); setYahooSyncActive((v) => !v); }}
+                          className={`w-full flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs font-bold transition-colors border ${
+                            yahooSyncActive
+                              ? 'bg-emerald-600/20 hover:bg-emerald-600/30 border-emerald-500/30 text-emerald-200'
+                              : 'bg-purple-600/20 hover:bg-purple-600/30 border-purple-500/30 text-purple-200'
+                          }`}
+                        >
+                          {yahooSyncActive ? '● Live sync ON (tap to pause)' : 'Start Live Sync'}
+                        </button>
+                      )}
+
+                      <button
+                        onClick={handleDisconnectYahoo}
+                        className="text-[9px] text-slate-500 hover:text-slate-300 underline"
+                      >
+                        Disconnect Yahoo
+                      </button>
+                    </div>
+                  )}
+
+                  {yahooStatus && (
+                    <div className="rounded border border-purple-500/10 bg-purple-500/5 p-1.5 text-center text-[9px] text-purple-300 font-mono">
+                      {yahooStatus}
+                    </div>
+                  )}
+                  {yahooError && (
+                    <div className="rounded border border-rose-500/10 bg-rose-500/5 p-1.5 text-center text-[9px] text-rose-400 font-mono">
+                      Error: {yahooError}
+                    </div>
+                  )}
+                </div>
+              </div>
+
               <div className="mt-2 border-t border-slate-800/40 pt-4 flex flex-col gap-3 animate-fade-in" id="ai-key-card">
                 <div className="bg-gradient-to-r from-teal-950/15 to-slate-900/30 border border-teal-500/10 rounded-xl p-4 flex flex-col gap-3 shadow-md">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
