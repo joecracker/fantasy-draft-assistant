@@ -1,9 +1,26 @@
 import express from 'express';
 import serverless from 'serverless-http';
 import { GoogleGenAI, Type } from '@google/genai';
+import {
+  yahooLogin,
+  yahooCallback,
+  yahooRefresh,
+  yahooLeagues,
+  yahooDraftResults,
+} from './yahoo';
 
 const app = express();
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// ---- Yahoo Fantasy (READ-ONLY) routes ----
+// Connect flow: /api/yahoo/login  ->  Yahoo  ->  /api/yahoo/callback
+app.get('/yahoo/login', yahooLogin);
+app.get('/yahoo/callback', yahooCallback);
+app.post('/yahoo/refresh', yahooRefresh);
+app.get('/yahoo/leagues', yahooLeagues);
+// The live heartbeat during a draft:
+app.get('/yahoo/draft/:leagueKey', yahooDraftResults);
 
 // Initialize Gemini API
 const apiKey = process.env.GEMINI_API_KEY;
