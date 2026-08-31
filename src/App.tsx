@@ -2640,7 +2640,7 @@ Give me a decisive, 2-3 sentence recommendation: who should I take, and the ONE 
                       type="password"
                       value={aiKeyInput}
                       onChange={(e) => setAiKeyInput(e.target.value)}
-                      placeholder="Paste your Gemini API key (e.g. AIza...) — free at aistudio.google.com"
+                      placeholder="Paste your Gemini API key (e.g. AIza...)"
                       className="flex-1 rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-xs text-white placeholder-slate-600 outline-none focus:border-teal-500 font-mono"
                     />
                     <button
@@ -2653,7 +2653,7 @@ Give me a decisive, 2-3 sentence recommendation: who should I take, and the ONE 
                     </button>
                   </div>
                   <p className="text-[10px] text-slate-500 leading-relaxed">
-                    Where to get one: visit <span className="text-teal-400 font-mono">aistudio.google.com</span> → get an API key. It's free and lets anyone using this app run player analysis with their own key — no server setup needed.
+                    Where to get one: get a free Gemini API key from Google, then paste it above. It lets anyone using this app run player analysis with their own key — no server setup needed.
                   </p>
                 </div>
               </div>
