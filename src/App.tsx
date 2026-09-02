@@ -15,6 +15,15 @@ import {
   fetchYahooLeagues, fetchYahooDraftPicks, saveYahooLeagueKey, loadYahooLeagueKey,
   type YahooLeague,
 } from './lib/yahooSync';
+import {
+  AI_PROVIDERS,
+  loadAiKey,
+  loadAiProvider,
+  saveAiKey,
+  saveAiProvider,
+  callAi,
+} from './lib/aiProvider';
+import type { AiProvider } from './lib/aiProvider';
 import { 
   Activity, Sliders, ChevronRight, AlertCircle, 
   X, Database, BarChart3, TrendingDown, Target,
@@ -145,10 +154,9 @@ export default function App() {
   const [isYahooLeaguesLoading, setIsYahooLeaguesLoading] = useState<boolean>(false);
   const yahooSeenPicks = useRef<Set<number>>(new Set()); // pick numbers already applied
 
-  // Bring-Your-Own-Key: user's own Gemini API key, saved only on this device
-  const [geminiApiKey, setGeminiApiKey] = useState<string>(() => {
-    try { return localStorage.getItem('td_gemini_api_key') || ''; } catch { return ''; }
-  });
+  // Bring-Your-Own-Key: user's own AI API key (any supported provider), saved only on this device
+  const [aiProvider, setAiProvider] = useState<AiProvider>(() => loadAiProvider());
+  const [geminiApiKey, setGeminiApiKey] = useState<string>(() => loadAiKey('gemini'));
   const [aiKeyInput, setAiKeyInput] = useState<string>('');
 
   // Dimmer / "twilight" theme toggle (persisted on this device)
@@ -700,20 +708,22 @@ export default function App() {
     }
   };
 
-  // Save the user's own Gemini API key to this device (never sent to any server)
+  // Save the user's own AI API key (for the selected provider) to this device (never sent to any server)
   const handleSaveAiKey = () => {
     const trimmed = aiKeyInput.trim();
     try {
-      if (trimmed) {
-        localStorage.setItem('td_gemini_api_key', trimmed);
-        setGeminiApiKey(trimmed);
-      } else {
-        localStorage.removeItem('td_gemini_api_key');
-        setGeminiApiKey('');
-      }
+      saveAiKey(aiProvider, trimmed);
+      setGeminiApiKey(loadAiKey(aiProvider));
     } catch (err) {
       console.error('Failed to save AI key locally:', err);
     }
+    setAiKeyInput('');
+  };
+
+  const handleSelectAiProvider = (provider: AiProvider) => {
+    setAiProvider(provider);
+    saveAiProvider(provider);
+    setGeminiApiKey(loadAiKey(provider));
     setAiKeyInput('');
   };
 
@@ -1470,7 +1480,7 @@ export default function App() {
   // Run AI analysis with Gemini — uses the user's own API key (saved on this device)
   const handleRunAiAnalysis = async (player: DraftPlayer) => {
     if (!geminiApiKey) {
-      setAiError('No AI key set yet. Open the Settings tab, paste your own free Gemini API key in the "AI Key" box, save it, then try again.');
+      setAiError('No AI key set yet. Open the Settings tab, paste your own AI API key in the "AI Key" box, save it, then try again.');
       return;
     }
     setIsAiLoading(true);
@@ -1565,34 +1575,16 @@ ${player.recentNews || 'No news or narrative statements provided.'}
         ]
       };
 
-      // Call Google's Gemini API directly from the browser using the user's own key.
-      const geminiResponse = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${encodeURIComponent(geminiApiKey)}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: userPrompt }] }],
-            systemInstruction: { parts: [{ text: systemInstruction }] },
-            generationConfig: {
-              responseMimeType: 'application/json',
-              responseSchema,
-            },
-          }),
-        }
-      );
-
-      if (!geminiResponse.ok) {
-        let detail = '';
-        try { const e = await geminiResponse.json(); detail = e?.error?.message || ''; } catch { /* ignore */ }
-        throw new Error(detail || `Gemini returned status ${geminiResponse.status}.`);
-      }
-
-      const geminiData = await geminiResponse.json();
-      const resultText = geminiData?.candidates?.[0]?.content?.parts?.map((p: any) => p.text).join('') || '';
-      if (!resultText) {
-        throw new Error('Gemini returned an empty response.');
-      }
+      // Call the selected provider's AI API directly from the browser using the user's own key.
+      const resultText = await callAi({
+        provider: aiProvider,
+        apiKey: geminiApiKey,
+        userPrompt,
+        systemInstruction,
+        json: true,
+        temperature: 0.4,
+        maxTokens: 1500,
+      });
 
       const analyzedResult = JSON.parse(resultText);
 
@@ -1861,26 +1853,13 @@ ${top3}
 
 Give me a decisive, 2-3 sentence recommendation: who should I take, and the ONE biggest reason why. Be direct, no hedging. If there's a clear position run happening (e.g. RBs flying off the board), say so.`;
 
-      const geminiResponse = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${encodeURIComponent(geminiApiKey)}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: userPrompt }] }],
-            generationConfig: { temperature: 0.7, maxOutputTokens: 220 },
-          }),
-        }
-      );
-
-      if (!geminiResponse.ok) {
-        let detail = '';
-        try { const e = await geminiResponse.json(); detail = e?.error?.message || ''; } catch { /* ignore */ }
-        throw new Error(detail || `Gemini returned status ${geminiResponse.status}.`);
-      }
-
-      const data = await geminiResponse.json();
-      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || 'No response from Gemini.';
+      const text = await callAi({
+        provider: aiProvider,
+        apiKey: geminiApiKey,
+        userPrompt,
+        temperature: 0.7,
+        maxTokens: 220,
+      });
       setCoachAiText(text.trim());
       setCoachAiPickKey(currentPick);
     } catch (err: any) {
@@ -2618,7 +2597,7 @@ Give me a decisive, 2-3 sentence recommendation: who should I take, and the ONE 
                       <div>
                         <span className="block text-xs font-bold text-white">AI Analysis Key</span>
                         <span className="block text-[10px] text-slate-400 leading-tight mt-0.5">
-                          The player breakdown reports are powered by Gemini AI. Paste your own free key here to unlock analysis — saved only on this device, never shared.
+                          Pick a provider and paste your own key to unlock analysis — saved only on this device, never shared.
                         </span>
                       </div>
                     </div>
@@ -2635,12 +2614,33 @@ Give me a decisive, 2-3 sentence recommendation: who should I take, and the ONE 
                     )}
                   </div>
 
+                  <div className="flex flex-wrap gap-1.5">
+                    {AI_PROVIDERS.map((p) => {
+                      const active = aiProvider === p.id;
+                      return (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() => handleSelectAiProvider(p.id)}
+                          title={p.keyHint}
+                          className={`rounded-md border px-2.5 py-1.5 text-[10px] font-bold transition-all ${
+                            active
+                              ? 'border-teal-500 bg-teal-500/10 text-teal-300'
+                              : 'border-slate-700 bg-slate-900/40 text-slate-400 hover:border-slate-500 hover:text-slate-200'
+                          }`}
+                        >
+                          {p.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+
                   <div className="flex flex-col sm:flex-row gap-2">
                     <input
                       type="password"
                       value={aiKeyInput}
                       onChange={(e) => setAiKeyInput(e.target.value)}
-                      placeholder="Paste your AI API key"
+                      placeholder={`Paste your ${AI_PROVIDERS.find((p) => p.id === aiProvider)?.label ?? ''} API key`}
                       className="flex-1 rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-xs text-white placeholder-slate-600 outline-none focus:border-teal-500 font-mono"
                     />
                     <button
@@ -2653,7 +2653,8 @@ Give me a decisive, 2-3 sentence recommendation: who should I take, and the ONE 
                     </button>
                   </div>
                   <p className="text-[10px] text-slate-500 leading-relaxed">
-                    Where to get one: get a free Gemini API key from Google, then paste it above. It lets anyone using this app run player analysis with their own key — no server setup needed.
+                    {AI_PROVIDERS.find((p) => p.id === aiProvider)?.keyHint ??
+                      'Get a key from your chosen provider, then paste it above.'} It lets anyone using this app run player analysis with their own key — no server setup needed.
                   </p>
                 </div>
               </div>

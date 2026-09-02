@@ -181,7 +181,7 @@ export default function HowToPage({ onBack }: HowToPageProps) {
           </ul>
           <p>
             Want a second opinion? Hit <Sparkles className="inline h-3.5 w-3.5 text-teal-400" />{" "}
-            <strong className="text-white">Ask AI Coach</strong> for a one-line read from Gemini on who to take. That needs your free AI key in
+            <strong className="text-white">Ask AI Coach</strong> for a one-line read from an AI model on who to take. That needs your free AI key in
             Settings (see below). Everything else works without it.
           </p>
         </>
@@ -193,7 +193,7 @@ export default function HowToPage({ onBack }: HowToPageProps) {
       body: (
         <>
           <p>
-            The app can talk to Google's Gemini AI for deeper help, but you bring your own key. It's free, quick, and saved only on your device.
+            The app can talk to your AI provider of choice for deeper help, but you bring your own key. It's free, quick, and saved only on your device.
           </p>
           <p>
             In <strong className="text-teal-400">Settings → AI Analysis Key</strong>, paste your AI API key and save. Once set, you get:
