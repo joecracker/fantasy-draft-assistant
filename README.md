@@ -18,22 +18,21 @@ This is a live draft board synced to real Sleeper league data, with optional on-
 
 ## How the AI analysis works
 
-Player breakdowns are generated server-side via a Netlify Function that calls the Gemini API — the API key never touches the browser. Each request returns a structured JSON report (objective metrics, regression risk, system analysis, variance assessment) rendered directly in the player info panel.
+Player breakdowns run on the AI assistant built into the app, using an API key you supply in Settings (saved only on this device, never sent to any server). You can bring your own key from any AI provider. Each request returns a structured JSON report (objective metrics, regression risk, system analysis, variance assessment) rendered directly in the player info panel.
 
 ## Tech stack
 
 - React + TypeScript, Vite
-- Netlify Functions (Express + `serverless-http`) for the AI proxy layer
+- Cloudflare Pages Functions for the health/backend layer
 - Sleeper API for live league/draft data
-- Google Gemini API for player analysis
-- Deployed on Netlify
+- Bring-your-own-key AI assistant for player analysis
+- Deployed on Cloudflare Pages
 
 ## Project structure
 
 ```
 src/                  React app source
-netlify/functions/    Serverless API (Sleeper proxy + Gemini analysis endpoint)
-netlify.toml          Netlify build & functions configuration
+functions/            Cloudflare Pages Functions (health endpoint)
 ```
 
 ## Local development
@@ -43,16 +42,16 @@ npm install
 npm run dev
 ```
 
-Requires a `GEMINI_API_KEY` environment variable for AI analysis to function (set as a Netlify environment variable in production — never committed to the repo).
+The AI assistant uses a key you paste in the app's Settings (bring-your-own-key) — no server-side key needed.
 
 ## Deployment
 
-Auto-deploys to Netlify on every push to `main`:
+Auto-deploys to Cloudflare Pages on every push to `main`:
 
 ```
 build command: npm run build
 publish dir:   dist
-functions dir: netlify/functions
+functions dir: functions
 ```
 
 ---

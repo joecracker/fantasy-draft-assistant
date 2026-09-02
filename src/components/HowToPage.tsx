@@ -196,7 +196,7 @@ export default function HowToPage({ onBack }: HowToPageProps) {
             The app can talk to Google's Gemini AI for deeper help, but you bring your own key. It's free, quick, and saved only on your device.
           </p>
           <p>
-            In <strong className="text-teal-400">Settings → AI Analysis Key</strong>, paste a Gemini API key and save. Once set, you get:
+            In <strong className="text-teal-400">Settings → AI Analysis Key</strong>, paste your AI API key and save. Once set, you get:
           </p>
           <ul className="flex flex-col gap-2 list-none">
             <li>The <Sparkles className="inline h-3.5 w-3.5 text-teal-400" /> <strong className="text-white">Ask AI Coach</strong> button in the coach panel.</li>

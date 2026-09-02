@@ -18,22 +18,22 @@ The Drive button needs **one Google OAuth Client ID**. It's a public identifier 
    - Name: "Personal Apps Web Client".
    - **Authorized JavaScript origins** — add one line per place these apps run, e.g.:
      - `http://localhost:5173` (local dev)
-     - `https://field-layout-tracker.netlify.app` (or whatever your actual Netlify domain is)
-     - `https://proposal-builder.netlify.app`
-     - `https://fantasy-draft-assistant.netlify.app`
-     - `https://crackerbox-studio.netlify.app`
+     - `https://nextlevel.crackerbox.app`
+     - `https://proposal-builder.crackerbox.app`
+     - `https://fantasy-draft-assistant.crackerbox.app`
+     - `https://crackerbox-studio.crackerbox.app`
    - Leave "Authorized redirect URIs" blank — this flow doesn't use redirects.
    - Create → copy the **Client ID** (looks like `123456789-abc...apps.googleusercontent.com`).
 
 ## 2. Add the Client ID to each app
 
-In each repo, set the env var (both locally and in Netlify's Site settings → Environment variables):
+In each repo, set the env var (both locally and in Cloudflare Pages → Settings → Environment variables):
 
 ```
 VITE_GOOGLE_CLIENT_ID="123456789-abc...apps.googleusercontent.com"
 ```
 
-Same value in all 4 apps. Redeploy after adding it to Netlify.
+Same value in all 4 apps. Redeploy after adding it to Cloudflare.
 
 ## 3. How it works / what it can access
 
@@ -49,7 +49,7 @@ Same value in all 4 apps. Redeploy after adding it to Netlify.
 | Crackerbox Studio | `Apps/Crackerbox Studio/backups` | `crackerbox-studio-backup.json` |
 
 - The sign-in token lives only in `sessionStorage` (cleared when you close the tab) — you'll reconnect roughly once per browsing session.
-- **Not synced to Drive, on purpose:** Fantasy Draft Assistant's Gemini API key, and Crackerbox Studio's encrypted GitHub/Netlify/OpenRouter deploy tokens. Those stay local-only.
+- **Not synced to Drive, on purpose:** Fantasy Draft Assistant's AI API key, and Crackerbox Studio's encrypted GitHub/OpenRouter deploy tokens. Those stay local-only.
 
 ## 4. Without any setup at all
 

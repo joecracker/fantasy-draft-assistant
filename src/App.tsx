@@ -2640,7 +2640,7 @@ Give me a decisive, 2-3 sentence recommendation: who should I take, and the ONE 
                       type="password"
                       value={aiKeyInput}
                       onChange={(e) => setAiKeyInput(e.target.value)}
-                      placeholder="Paste your Gemini API key (e.g. AIza...)"
+                      placeholder="Paste your AI API key"
                       className="flex-1 rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-xs text-white placeholder-slate-600 outline-none focus:border-teal-500 font-mono"
                     />
                     <button
